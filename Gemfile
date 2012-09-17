@@ -1,13 +1,13 @@
 source :rubygems
 source "http://gems.github.com"
 
-# RestClient - Simple HTTP and REST client for making RESTful web service calls. 
-gem "rest-client"
+# Rails
+gem "rails"
 
 # Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records
 gem "marc"
 
-# WorldCat API - wrapper around OCLC WorldCat web services
+# WorldCat API - wrapper around OCLC WorldCat web services. Dependent on httparty.
 gem "worldcat-api", :git => 'https://github.com/fixlr/worldcat-api.git'
 
 # Nokogiri - for parsing XML and HTML results.
