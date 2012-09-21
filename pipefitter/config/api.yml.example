@@ -1,0 +1,17 @@
+# API Keys and other local constants
+test:
+    OCLC:
+      API_KEY: 'My_OCLC_Developer_Key' 
+      LIBRARY: 'My_OCLC_Library_Symbol' # e.g. 'KKP'
+
+#    SERSOLS:
+
+development:
+    OCLC:
+      API_KEY: 'My_OCLC_Developer_Key' 
+      LIBRARY: 'My_OCLC_Library_Symbol' # e.g. 'KKP'
+
+production:
+    OCLC:
+      API_KEY: 'My_OCLC_Developer_Key' 
+      LIBRARY: 'My_OCLC_Library_Symbol' # e.g. 'KKP'
