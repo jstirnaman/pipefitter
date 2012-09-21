@@ -13,9 +13,6 @@ gem "marc"
 # Nokogiri - for parsing XML and HTML results.
 gem "nokogiri", "~>1.5.5"
 
-# Worldcat-API - Fixlr's wrapper around OCLC Catalog API
-gem 'worldcat-api', :git => 'git://github.com/fixlr/worldcat-api.git'
-
 # HttParty - for making external resource calls
 gem "httparty"
 
