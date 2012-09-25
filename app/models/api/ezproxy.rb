@@ -1,15 +1,21 @@
-# Fixlr's Worlcat wrapper from worldcat-api
-module Worldcat
+# Scrapes your EZProxy /menu page to find the list of configured resources and URLs.
+
+module Ezproxy
 
   class Client
     include HTTParty
     
-    format :xml
+    format :html
 
-    base_uri 'http://www.worldcat.org/webservices/catalog'
+    #base_uri 'http://proxy.kumc.edu:2048'
 
-    def initialize(wskey)
-      self.class.default_params :wskey => wskey
+    def initialize()
+      self.class
+    end
+    
+    # Return a hash {name, url} of all configured resources.
+    def list(options = {})
+      hash_from_menu(self.class.get("/menu"))
     end
 
     # Perform an SRU search of the Worldcat database and returns results.
@@ -47,6 +53,13 @@ module Worldcat
 
     def format_id_param(id)
       Array(id).join('/')
+    end
+    
+    def hash_from_menu(document)
+    # Parse the HTML doc and find the paragraph element containing the list of links.
+      doc = Nokogiri::XML::Document.parse(document)
+      body = doc.css('body')
+      #menu = body.xpath("/p[a[contains(@href, '/login?url=')]]")
     end
   end
 end
