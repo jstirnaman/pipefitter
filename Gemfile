@@ -10,6 +10,9 @@ gem 'sqlite3'
 # Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records
 gem "marc"
 
+# Mechanize - for automating interactions and form submissions on external sites.
+gem "mechanize"
+
 # Nokogiri - for parsing XML and HTML results.
 gem "nokogiri", "~>1.5.5"
 
