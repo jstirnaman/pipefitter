@@ -7,7 +7,7 @@ gem 'rails', '3.2.8'
 
 gem 'sqlite3'
 
-# Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records
+# Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records.
 gem "marc"
 
 # Mechanize - for automating interactions and form submissions on external sites.
@@ -16,8 +16,10 @@ gem "mechanize"
 # Nokogiri - for parsing XML and HTML results.
 gem "nokogiri", "~>1.5.5"
 
-# HttParty - for making external resource calls
+# HttParty - for making external resource calls.
 gem "httparty"
+
+# Google Drive - for easily reading/writing Google sheets.
 
 # Gems used only for assets and not required
 # in production environments by default.
