@@ -20,6 +20,7 @@ gem "nokogiri", "~>1.5.5"
 gem "httparty"
 
 # Google Drive - for easily reading/writing Google sheets.
+gem "google_drive"
 
 # Gems used only for assets and not required
 # in production environments by default.
