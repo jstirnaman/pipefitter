@@ -1,52 +1,25 @@
 # Scrapes your EZProxy /menu page to find the list of configured resources and URLs.
-
 module Ezproxy
 
   class Client
-    include HTTParty
+    include CasMechanizer
     
-    format :html
-
-    #base_uri 'http://proxy.kumc.edu:2048'
+    attr_accessor :agent, :store, :page
 
     def initialize()
-      self.class
+      @agent = Mechanize.new
+      @agent.log = Logger.new "mechanize-ezproxy.log"
+      @agent.user_agent_alias = 'Mac FireFox'
+      # Store CAS credentials.
+      @store = cas_auth_store
+      # Return a Mechanize Page object from the content at URL.
+      #@page = @agent.get(API_CONFIG['EZPROXY']['BASE_URL']+'/menu')
+      @page = mechanize_authentication(API_CONFIG['EZPROXY']['BASE_URL']+'/menu')
     end
     
-    # Return a hash {name, url} of all configured resources.
-    def list(options = {})
-      hash_from_menu(self.class.get("/menu"))
-    end
-
-    # Perform an SRU search of the Worldcat database and returns results.
-    def search(query, options = {})
-      options.merge!({:query => query})
-      self.class.get("/search/sru", :query => options)
-    end
-
-    # Get a single bibliographic record
-    def get_record(id, options = {})
-      id = format_id_param(id)
-      self.class.get("/content/#{id}", :query => options)
-    end
-
-    # Get information about the libraries that indicate they hold the item.
-    def get_locations(id, options = {})
-      id = format_id_param(id)
-      self.class.get("/content/libraries/#{id}", :query => options)
-    end
-
-    # Get the Library Catalog URL for a specific item at OCLC libraries.
-    def get_catalog_urls(id, oclcsymbol, options = {})
-      options.merge!(:oclcsymbol => Array(oclcsymbol).join(','))
-      get_locations(id, options)
-    end
-
-    # Get formatted bibliographic citations, in an HTML encoded form suitable
-    # for incorporation into a web application.
-    def get_citations(id, options = {})
-      id = format_id_param(id)
-      self.class.get("/content/citations/#{id}", :query => options)
+    def links(options = {:href => %r/proxy.kumc.edu/})
+      # Mechanize returns array of matching Mechanize::Page::Link objects with a.content, a.href
+      page.links_with(options)
     end
 
     private
@@ -55,10 +28,9 @@ module Ezproxy
       Array(id).join('/')
     end
     
-    def hash_from_menu(document)
+    def hash_from_menu
     # Parse the HTML doc and find the paragraph element containing the list of links.
-      doc = Nokogiri::XML::Document.parse(document)
-      body = doc.css('body')
+      #body = doc.css('body')
       #menu = body.xpath("/p[a[contains(@href, '/login?url=')]]")
     end
   end
