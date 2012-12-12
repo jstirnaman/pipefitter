@@ -7,13 +7,26 @@ namespace :pipefitter do
     begin
       unless ARGV.empty?
         path = ARGV[1]
-        p path.inspect
-        table = CsvReporter::Import.new(path)
-        table.each do |row|
-          e = EResourceHolding.new(row[:title])
-          row["local_holdings"] = e.kb_holdings.holdings?
+        path = Rails.root.join(path)
+        table = CsvReporter::Import.new(Rails.root.join(path))
+        
+        p table.data.size.to_s + " rows " + " in " + path.to_s
+        p "with headers: " + table.data.headers.join(', ')
+        table.data.each do |row|
+          e = ''
+          if row[:issn]
+            p row[:issn]
+            e = EResourceHolding.new({:issn => row[:issn]}) 
+          elsif row[:title]
+            p row[:title]
+            e = EResourceHolding.new({:title => row[:title]})
+          end
+          row["local_holdings"] = e.kb_holdings.holdings?.to_s
+          #row["local_holdings", e.kb_holdings.holdings?]
+          sleep(1) # Throttle API requests; wait a second before processing next row.
         end
-      CsvReporter.Export.new("eresource_holdings", table)
+        p e.kb_holdings.holdings?
+        CsvReporter::Export.new("eresource_holdings", table.data)
       else
       puts "### ERROR - No file supplied ###"
       end

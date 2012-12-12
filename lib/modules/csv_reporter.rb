@@ -1,15 +1,16 @@
 require 'csv'
 module CsvReporter
   class Import
+    attr_accessor :data
     def initialize(filepath)
       # Create a table from a CSV file with headers
-      csvtable = CSV.table(filepath) 
+      @data = CSV.table(filepath)
     end
   end
   
   class Export
     def initialize(report_name, report_data)
-			report_name = report_name + '_'+Time.now.strftime("%Y%m%d%h%m") + ".csv"
+			report_name = Rails.root.join('public/export/' + report_name + '_'+Time.now.strftime("%Y%m%d%h%m") + ".csv")
 			if report_data.class == Array
 				CSV.open(report_name, "wb") do |csv|
 					header_keys = report_data.map {|w| w.keys}.flatten.uniq!
