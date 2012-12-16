@@ -10,7 +10,7 @@ module CsvReporter
   
   class Export
     def initialize(report_name, report_data)
-			report_name = Rails.root.join('public/export/' + report_name + '_'+Time.now.strftime("%Y%m%d%h%m") + ".csv")
+			report_name = Rails.root.join('public/export/' + report_name + '_'+Time.now.strftime("%Y%m%d%H%M") + ".csv")
 			if report_data.class == Array
 				CSV.open(report_name, "wb") do |csv|
 					header_keys = report_data.map {|w| w.keys}.flatten.uniq!

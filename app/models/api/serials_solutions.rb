@@ -45,7 +45,7 @@ module SerialsSolutions
 				# several resources that match the metadata but the 
 				# library has no holdings for any of them. 
 			  !(Nokogiri::XML::Document.parse(response.body)
-				.xpath('//ssopenurl:linkGroups').nil?)
+				.xpath('//ssopenurl:linkGroups').empty?)
 			end
 			
 			def all_holdings
