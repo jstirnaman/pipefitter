@@ -2,10 +2,15 @@ source 'https://rubygems.org'
 
 gem 'rails', '3.2.8'
 
+gem 'make_resourceful'
+
 # Bundle edge Rails instead:
 # gem 'rails', :git => 'git://github.com/rails/rails.git'
 
 gem 'sqlite3'
+
+# Rabl for json, xml templates
+# gem "rabl"
 
 # Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records.
 gem "marc"
@@ -48,8 +53,10 @@ gem 'jquery-rails'
 # Deploy with Capistrano
 # gem 'capistrano'
 
-# To use debugger
-# gem 'debugger'
 
-# gem 'rspec'
+group :development, :test do
+  gem 'rspec-rails'
+  # To use debugger
+  # gem 'debugger'
+end
 

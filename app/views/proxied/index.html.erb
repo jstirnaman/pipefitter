@@ -1,0 +1,10 @@
+<h1>Proxied Resources</h1>
+<h2><%= @proxied.size %> match <%= @query %></h2>
+<ol>
+<%- @proxied.each do |p| %>
+    <li>
+    <%= link_to( p.text, p.href ) %>
+    </li>
+    <span><!-- Show real-time screenshot or status using jquery --></span>
+<% end %>
+</ol>

@@ -1,4 +1,11 @@
 Pipefitter::Application.routes.draw do
+
+  match 'proxied/show/:q' => 'proxied#show'
+  match 'proxied/index/:q' => 'proxied#index'
+  match 'proxied/:q' => 'proxied#index'
+  resources :proxied
+
+
   # The priority is based upon order of creation:
   # first created -> highest priority.
 

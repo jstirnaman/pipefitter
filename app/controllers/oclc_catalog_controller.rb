@@ -1,2 +1,0 @@
-class OclcCatalogController < ApplicationController
-end

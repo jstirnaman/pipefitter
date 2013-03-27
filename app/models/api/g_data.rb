@@ -8,17 +8,16 @@ module GData
 			# You can also use OAuth. See document of
 			# GoogleDrive.login_with_oauth for details.
 			session = GoogleDrive.login(API_CONFIG['GOOGLE_DRIVE']['EMAIL'], API_CONFIG['GOOGLE_DRIVE']['PASSWORD'])
-			# First worksheet
-			@worksheet = session.spreadsheet_by_key(spreadsheet_key).worksheets[0]
+			# First worksheet as a list. Lets you reference columns by headers in first row.
+			# e.g. client.worksheet.keys # => ["database_name", "local_subjects", "oclc_id"]
+			# e.g. client.worksheet.each {|r| p r['database_name']}
+			@worksheet = session.spreadsheet_by_key(spreadsheet_key).worksheets[0].list
 		end
 		
-		def column(col)
-			self.worksheet.rows.map {|r| r[col-1]}
-		end
 		
 		def all
-		  # Gets all content
-		  self.worksheet.rows
+		  # Gets all content as array of hash. Column names are keys.
+		  self.worksheet.to_hash_array
 		end
 	end
 end
