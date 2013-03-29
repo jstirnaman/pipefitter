@@ -58,5 +58,6 @@ group :development, :test do
   gem 'rspec-rails'
   # To use debugger
   # gem 'debugger'
+  gem 'ruby-debug'
 end
 
