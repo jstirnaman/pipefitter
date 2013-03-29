@@ -1,0 +1,9 @@
+<li><%= link_to( proxied[:text], proxied[:href] ) %>
+	<span><!-- Show real-time screenshot or status using jquery --></span>
+	<%- # Include related data %>
+	  <span class="related">
+	    <%- if proxied[:oclc_id] %>
+	      <%= render :partial => "oclc", :locals => {:proxied => proxied} %>
+	    <%- end %>
+	  </span>
+</li>

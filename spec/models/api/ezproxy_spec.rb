@@ -11,8 +11,9 @@ describe Ezproxy::Client do
 		  it "returns an array of Mechanize link objects" do
 			  @client.links.should be_kind_of Array 
 			  @client.links.first.should be_kind_of Mechanize::Page::Link
-			end  
+			end 
 		end
+
 	end
   
 end
