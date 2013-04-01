@@ -14,15 +14,6 @@ class ProxiedsController < ApplicationController
   def initialize
     @client = Ezproxy::Client.new
   end
-
-  def proxy_hashes(proxy_objs)
-		proxy_objs.collect do |p|
-				h = Hash.new
-				h[:text] = p.text
-				h[:href] = p.href
-				h
-		end
-  end
   
   def index
     @query = params[:q] || '.*'
@@ -31,10 +22,7 @@ class ProxiedsController < ApplicationController
     #Returns links that have text_value matching the query, e.g. find("pubmed")
     #Array of Mechanize::Page::Links objects
     unless @proxieds
-			@proxieds = client.links({:text => query})
-			#Return an array of hashes that we can alter with other methods
-			#Must be time to move this into a model.
-			@proxieds = proxy_hashes(@proxieds)
+			@proxieds = client.links_to_hash({:text => query})
     end
     @proxieds
   end
@@ -45,27 +33,55 @@ class ProxiedsController < ApplicationController
     @proxieds = client.links({:text => query})
   end
   
+  def related
+    unless @proxieds
+      index
+    end
+    oclc_records
+    enrichments_records
+    render :action => "index"
+  end
+  
   def oclc
-    # Return OCLC record ids that match proxied resource title
-    @query = params[:q] || '.*'
-    # Accept string or regexp. If string, convert to regexp.
-    query = @query.class == Regexp ? @query : %r/^#{@query}/i
-    #Returns links that have text_value matching the query, e.g. find("pubmed")
-    #Array of Mechanize::Page::Links objects
-    @proxieds = client.links({:text => query})
-    #Return an array of hashes that we can alter with other methods
-    #Must be time to move this into a model.
-    @proxieds = proxy_hashes(@proxieds)
+    unless @proxieds
+      index
+    end
+    oclc_records
+    render :action => "index"
+  end
+  
+  def oclc_records
     @proxieds = @proxieds.map do |p|
       h = Hash.new
       h[:oclc_id] = []
-      Ditare::MarcRecordset.new(:oclc, {:q => p[:text]})
+      # Search MARC SRU source for the EZProxy target host, e.g. 'www.accessmedicine.com'
+      Ditare::MarcRecordset.new(:oclc, {:q => 'srw.kw=' + p[:target].host})
         .read.each do |rec|
           h[:oclc_id] << rec['001'].value
         end
       p.merge(h)
+    end  
+  end
+  
+  def enrichments
+    unless @proxieds
+      index
     end
-    render :action => "index"
+    enrichments_records
+    render :action => "index"    
+  end
+  
+  def enrichments_records
+    @proxieds = @proxieds.map do |p|
+      h = Hash.new
+      h[:enrichments] = []
+      e = Ditare::EnrichmentSet.new({:field => 'database_name', :q => p[:text]})
+      e.recordset.each do |r|
+        # Convert GData object to hash
+        h[:enrichments] << Hash.try_convert(r)
+      end
+      p.merge(h)
+    end  
   end
   
   def api(params)

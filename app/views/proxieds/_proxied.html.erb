@@ -1,9 +1,13 @@
-<li><%= link_to( proxied[:text], proxied[:href] ) %>
+<li><%= link_to( proxied[:text], proxied[:uri].to_s ) %>
 	<span><!-- Show real-time screenshot or status using jquery --></span>
+	<span class="data_element">Target Resource: <%= proxied[:target].host %></span>
 	<%- # Include related data %>
 	  <span class="related">
 	    <%- if proxied[:oclc_id] %>
-	      <%= render :partial => "oclc", :locals => {:proxied => proxied} %>
+	      <%= render :partial => "oclc", :locals => {:oclcid => proxied[:oclc_id]} %>
 	    <%- end %>
+	    <%- if proxied[:enrichments] %>
+	      <%= render :partial => "enrichments", :locals => {:enrichments => proxied[:enrichments]} %>
+	    <%- end %>	    
 	  </span>
 </li>

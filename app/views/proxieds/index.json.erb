@@ -1,8 +1,9 @@
 [
-<%- @proxied.each do |p| %>
+<%- @proxieds.each do |p| %>
   {
-    "name": "<%= p.text %>",
-    "link": "<%= p.href %>"
+    "name": "<%= p[:text] %>",
+    "link": "<%= p[:uri] %>",
+    "target": "<%= p[:target] %>"
   },
 <% end %>
 ]
