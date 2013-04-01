@@ -12,6 +12,9 @@ gem 'sqlite3'
 # Rabl for json, xml templates
 # gem "rabl"
 
+# URI for URI parsing and handling
+gem 'uri'
+
 # Ruby MARC - for parsing, validating, and writing Machine Readable Cataloging records.
 gem "marc"
 
