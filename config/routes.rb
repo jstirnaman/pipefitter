@@ -1,9 +1,17 @@
 Pipefitter::Application.routes.draw do
 
-  match 'proxied/show/:q' => 'proxied#show'
-  match 'proxied/index/:q' => 'proxied#index'
-  match 'proxied/:q' => 'proxied#index'
-  resources :proxied
+  match 'proxieds/:q' => 'proxieds#index'
+  match 'proxieds/show/:q/:n' => 'proxieds#show'
+  match 'proxieds/show/:q' => 'proxieds#show'
+  match 'proxieds/index/:q' => 'proxieds#index'
+  match 'proxieds/oclc/:q' => 'proxieds#oclc'
+  match 'proxieds/enrichments/:q' => 'proxieds#enrichments'
+  match 'proxieds/related/:q' => 'proxieds#related'
+  resources :proxieds
+  
+  match 'enrichments/index/:field/:q' => 'enrichments#index'
+  match 'enrichments/:q' => 'enrichments#index'
+  resources :enrichments
 
 
   # The priority is based upon order of creation:

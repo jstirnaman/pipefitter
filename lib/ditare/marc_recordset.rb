@@ -10,7 +10,7 @@ module Ditare
 			# Accept a file, string, or api name.
 			if recordsource == :oclc
 				@reader = :marcxml
-				@recordset = OclcRecordset.new(options).recordset     
+				@recordset ||= OclcRecordset.new(options).to_marcxml     
 			end
 		end
     
@@ -37,78 +37,84 @@ module Ditare
 			export_path + self.class.to_s + '_' + filedesc + Time.now.strftime("%Y%m%d%H%M") + ".mrc"
 		end
  
-		 def has_proxied_resources
-			# Returns array of record identifier (001) and matching proxy entry.
-			proxy_list = ResourceProxy.new
+		 def proxieds
+			# Returns array of record and matching proxy entry.
+			proxy_list = Ezproxy::Client.new
 			results = []
 			read.each do |record|
-				q = ResourceProxy.find_all(%r/^#{record['245']['a'].strip}/i)
+				q = proxy_list.links({:text => %r/^#{record['245']['a'].strip}/i})
 				unless q.empty?
-					results << [record['001'].value, q]
+					results << [record.to_marc, q]
 				end
 			end
-			@proxied = results
-		end
-	
-		def has_tagged_resources
-			# Returns array of record identifier (001) and matching tagged entry.
-			results = []
-			read.each do |record|
-				q = SelectedResource.find_all(%r/^#{record['245']['a'].strip}/i)
-				unless q.empty?
-					results << [record['001'].value, q]
-				end
-			end
-			@tagged = results
+			results
 		end
 
-		def add_proxy_url(out_file)
-			# Gets records that have matching proxy entry.
-			# Writes a file containing the modified set of MARC-encoded records with proxied links in the 856.
-			@proxied ||= has_proxied_resources
-			writer = Writer.new(out_file ||= export_file)
-			read.each do |r|
-				proxy_entry = @proxied.select {|p| p[0] == r['001'].value}.flatten
-					unless proxy_entry.empty?  
+		def proxied
+			# Modified set of MARC-encoded records with proxied links in the 856.
+			marc = []
+			proxieds.each do |p|
+			  reader = MARC::Reader.new(StringIO.new(p[0]))
+			  reader.each do |r|
 						r.append(MARC::DataField.new( '856', '4', '0', 
-																				['u', proxy_entry[1].href], 
+																				['u', p[1][0].href], 
 																				['y', ('Connect to ' + r['245']['a'])]
 																				)
 										)
-					end
-				writer.write(r)
+						marc << r
+			  end
 			end
-			writer.close
+			marc
 		end
-	
-		def add_tags(out_file)
-			# Gets records that have matching proxy entry.
-			# Returns a new set of MARC-encoded records enriched with local subjects and other local info.
-			@tagged ||= has_tagged_resources
-			writer = Writer.new(out_file ||= export_file)
-			read.each do |r|
-				tagged_entry = @tagged.select {|t| t[0] == r['001'].value}.flatten
-					unless tagged_entry.empty?
-						subjects = tagged_entry[1]["local_subjects"].split(';')
-						subjects.each do |s|
-							r.append(MARC::DataField.new( '650', '7', '0', 
-																				['a', s.strip], 
-																				['2', 'http://library.kumc.edu']
-																				)
-										)
-						end
-					end
-				writer.write(r)
+		
+		def tags
+			# Returns array of record and matching tagged entry.
+			results = []
+			read.each do |record|
+				es = Ditare::EnrichmentSet.new({
+				      :field => 'database_name',
+				      :q => %r/^#{record['245']['a'].strip}/i
+				      })
+				unless es.recordset.empty?
+					results << [record.to_marc, es.recordset]
+				end
 			end
-			writer.close
+			results
+		end		
+	
+		def tagged
+			# Returns a new set of MARC-encoded records enriched with local subjects and other local info.
+			marc = []
+			tags.each do |t|
+			  reader = MARC::Reader.new(StringIO.new(t[0]))
+			  reader.each do |r|
+							subjects = t[1][0]["local_subjects"].split(';')
+							subjects.each do |s|
+								r.append(MARC::DataField.new( '650', '7', '0', 
+																					['a', s.strip], 
+																					['2', 'http://library.kumc.edu']
+																					)
+											)
+							end
+					marc << r
+				end
+      end
+      marc
 		end  
 	
-		def enrich
+		def enriched
 			# Perform all enrichments and export the file with the descriptor "_enriched_" in the name.
-			out_file = export_file
-			add_proxy_url(out_file)
-			m = MarcRecordset.new(out_file)
-			m.add_tags(export_file('enriched'))
-		end 
-  end
+      @recordset = proxied
+			mr = Ditare::MarcRecordset.new(:local, {})
+      mr.tagged
+      mr.to_marc_export("_enriched_")
+		end
+		
+		def to_marc_export(out_file)
+		  writer = Writer.new(out_file ||= export_file)
+		  	writer.write(self)
+			writer.close
+		end
+		
+  end	 
 end

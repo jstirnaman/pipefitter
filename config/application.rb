@@ -21,6 +21,8 @@ module Pipefitter
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
+    config.autoload_paths += %W(#{config.root}/lib)
+    config.autoload_paths += %W(#{config.root}/lib/ditare)
     config.autoload_paths += %W(#{config.root}/lib/modules)
     config.autoload_paths += %W(#{config.root}/app/models/api)
     

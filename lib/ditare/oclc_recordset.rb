@@ -4,27 +4,32 @@ module Ditare
 
   class OclcRecordset
     include Worldcat #api/worldcat.rb
-		attr_accessor :client, :recordset
+		attr_accessor :client, :recordset, :query
+		
+		LANGUAGE = API_CONFIG['OCLC']['LANGUAGE']
 		
 		def initialize(query)
+		  @query = query
 		  @client = Worldcat::Client.new(API_CONFIG['OCLC']['API_KEY'])
-		  @recordset = find_all(query)
 		end
 		   
-		def find_all(query)
+		def find_all
 			case
 				when query[:i]
-					@response = client.get_record(query[:i]).response.body
+					client.get_record(query[:i]).response.body
 				when query[:q]
 					# SRU response
-					@response = client.search(query[:q]).response.body
+					client.search(query[:q]).response.body
 			end
-			xmldoc = Nokogiri::XML::Document.parse(@response)
-			records = xmldoc.css('record') # Returns Nodeset of record elements
-			to_marcxml(records)
 		end
 		
-		def to_marcxml(records)
+		def to_record_nodeset
+			xmldoc = Nokogiri::XML::Document.parse(find_all)
+			xmldoc.css('record') # Returns Nodeset of record elements		
+		end
+		
+		def to_marcxml
+      records = to_record_nodeset
 		# Converts a nodelist of <record> into a
 		# MARCXML-like document: 
 		# <collection><record>..</record></collection.
@@ -32,8 +37,10 @@ module Ditare
 			# Add a root element named collection
 			colldoc.root=colldoc.create_element('collection')
 			# Add records from nodeset as child of the root element.
-			colldoc
-			colldoc.root << records.xpath('.//xmlns:record', {'xmlns' => "http://www.loc.gov/MARC21/slim"})
+			record_nodes = records.xpath('.//xmlns:record', 
+			                  {'xmlns' => "http://www.loc.gov/MARC21/slim"})
+			record_nodes = record_nodes.empty? ? records.css('record') : record_nodes
+			colldoc.root << record_nodes
 			colldoc
 		end
   end  

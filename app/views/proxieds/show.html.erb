@@ -1,2 +1,6 @@
 <h1>Proxied Resource</h1>
-<%= @proxied %>
+<h2>Match <%= @seq %> of <%= @proxieds_count %> for <%= @query %></h2>
+<ol>
+<%= debug @proxieds %>
+<%= render :partial => "proxied", :collection => @proxieds, :as => :proxied %>
+</ol>

@@ -28,9 +28,19 @@ class ProxiedsController < ApplicationController
   end
   
   def show
-    @query = params[:q]
-    query = %r/^#{@query}$/i
-    @proxieds = client.links({:text => query})
+    unless @proxieds
+      index
+    end
+    @seq = params[:n].to_i
+    @proxieds_count = @proxieds.size
+    if @seq <= @proxieds.size and @seq > 1
+      @seq
+      n = @seq-1
+      @proxieds = @proxieds[n..n]
+    else
+      @proxieds = @proxieds[0..0] # First element as a new array.
+      @seq = 1
+    end
   end
   
   def related
@@ -39,7 +49,7 @@ class ProxiedsController < ApplicationController
     end
     oclc_records
     enrichments_records
-    render :action => "index"
+    render :action => self.action_name
   end
   
   def oclc
@@ -47,7 +57,7 @@ class ProxiedsController < ApplicationController
       index
     end
     oclc_records
-    render :action => "index"
+    render :action => self.action_name
   end
   
   def oclc_records
@@ -55,7 +65,13 @@ class ProxiedsController < ApplicationController
       h = Hash.new
       h[:oclc_id] = []
       # Search MARC SRU source for the EZProxy target host, e.g. 'www.accessmedicine.com'
-      Ditare::MarcRecordset.new(:oclc, {:q => 'srw.kw=' + p[:target].host})
+      target_arr = p[:target].host.split('.')
+      target_name = target_arr[-2] # For searching first part of domain name as title or kw.
+      target_primary_domain = target_arr.last(2).join('.') # For searching primary domain name as 856u.
+      # Search for primary domain in 856u (accessmethod) AND any words from link text in 245 (title).
+      Ditare::MarcRecordset.new(:oclc, {:q => 'srw.am='+ target_primary_domain + 
+                                              ' and ' + 'srw.ti ANY ' + '"' + p[:text] + '"' 
+                                        })
         .read.each do |rec|
           h[:oclc_id] << rec['001'].value
         end
@@ -68,7 +84,7 @@ class ProxiedsController < ApplicationController
       index
     end
     enrichments_records
-    render :action => "index"    
+    render :action => self.action_name  
   end
   
   def enrichments_records
@@ -91,4 +107,3 @@ class ProxiedsController < ApplicationController
     end
   end
 end
-

@@ -11,13 +11,12 @@ module GData
 			# First worksheet as a list. Lets you reference columns by headers in first row.
 			# e.g. client.worksheet.keys # => ["database_name", "local_subjects", "oclc_id"]
 			# e.g. client.worksheet.each {|r| p r['database_name']}
-			@worksheet = session.spreadsheet_by_key(spreadsheet_key).worksheets[0].list
-		end
-		
+			@worksheet = session.spreadsheet_by_key(spreadsheet_key).worksheets[0]
+		end		
 		
 		def all
 		  # Gets all content as array of hash. Column names are keys.
-		  self.worksheet.to_hash_array
+		  self.worksheet.list.to_hash_array
 		end
 	end
 end
