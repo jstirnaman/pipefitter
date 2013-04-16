@@ -20,3 +20,6 @@
 # Ignore cached gems
 /vendor/cache
 
+# Ignore export files
+/public/export/*.*
+
