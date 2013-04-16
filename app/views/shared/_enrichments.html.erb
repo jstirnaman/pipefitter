@@ -1,0 +1,18 @@
+<div class="local">
+<strong>Enrichments</strong>
+  <%- if enrichments.nil? %>
+    <p>None</p>
+  <%- else %>
+		<ul>
+			<%- enrichments.each do |e| %>
+			  <li>
+						<%- e.each do |k,v| %>
+						  <div>   
+				      <%= k %>: <%= v %>
+				      </div> 
+				    <%- end %>
+				</li>
+			<%- end %>
+		</ul>
+	<%- end %>
+</div>

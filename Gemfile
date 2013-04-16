@@ -27,6 +27,10 @@ gem "httparty"
 # Google Drive - for easily reading/writing Google sheets.
 gem "google_drive"
 
+### Layout Gems ###
+# Twitter Bootstrap
+gem 'bootstrap-sass'
+
 # Gems used only for assets and not required
 # in production environments by default.
 group :assets do

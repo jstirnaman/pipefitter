@@ -28,9 +28,8 @@ module Ditare
 			xmldoc.css('record') # Returns Nodeset of record elements		
 		end
 		
-		def to_marcxml
-      records = to_record_nodeset
-		# Converts a nodelist of <record> into a
+		def to_marcxml(records = to_record_nodeset)
+		# Converts a nodeset of <record> into a
 		# MARCXML-like document: 
 		# <collection><record>..</record></collection.
 			colldoc = Nokogiri::XML::Document.new()

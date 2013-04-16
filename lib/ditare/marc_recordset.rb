@@ -20,7 +20,7 @@ module Ditare
 			else
 				# Returns new MARC::Reader for the recordset.
 				# All the MARC goodness is at your disposal.
-					reader = Reader.new(File.expand_path(recordset, __FILE__))
+					#reader = Reader.new(File.expand_path(recordset, __FILE__))
 					reader ||= Reader.new(StringIO.new(recordset))
 			end
 		end
@@ -34,7 +34,7 @@ module Ditare
 		def export_file(filedesc = '')
 			export_path = Rails.root.to_s + '/public/export/'
 			filedesc = filedesc + '_' unless filedesc == ''
-			export_path + self.class.to_s + '_' + filedesc + Time.now.strftime("%Y%m%d%H%M") + ".mrc"
+			export_path + self.class.to_s.demodulize + '_' + filedesc + Time.now.strftime("%Y%m%d%H%M") + ".mrc"
 		end
  
 		 def proxieds
@@ -43,6 +43,9 @@ module Ditare
 			results = []
 			read.each do |record|
 				q = proxy_list.links({:text => %r/^#{record['245']['a'].strip}/i})
+				if q.empty?
+				  q = proxy_list.links({:href => %r/#{URI.parse(record['856']['u']).host}.*/i})
+				end
 				unless q.empty?
 					results << [record.to_marc, q]
 				end
@@ -61,7 +64,7 @@ module Ditare
 																				['y', ('Connect to ' + r['245']['a'])]
 																				)
 										)
-						marc << r
+						marc << r.to_marc
 			  end
 			end
 			marc
@@ -72,8 +75,8 @@ module Ditare
 			results = []
 			read.each do |record|
 				es = Ditare::EnrichmentSet.new({
-				      :field => 'database_name',
-				      :q => %r/^#{record['245']['a'].strip}/i
+				      :field => 'oclc_id',
+				      :q => %r/^#{record['001'].value}/
 				      })
 				unless es.recordset.empty?
 					results << [record.to_marc, es.recordset]
@@ -96,24 +99,41 @@ module Ditare
 																					)
 											)
 							end
-					marc << r
+					marc << r.to_marc
 				end
       end
       marc
 		end  
 	
-		def enriched
-			# Perform all enrichments and export the file with the descriptor "_enriched_" in the name.
-      @recordset = proxied
+		def enriched	
+		  # Returns a new object with all enrichments.	
 			mr = Ditare::MarcRecordset.new(:local, {})
-      mr.tagged
-      mr.to_marc_export("_enriched_")
+			mr.recordset = proxied.first
+      mr.recordset = mr.tagged.first
+      mr
 		end
 		
+		def export_enriched
+		# Enrich and export the file with the descriptor "_enriched_" 
+      begin
+        enriched.to_marc_export(export_file("enriched"))
+      rescue StandardError => e
+        STDERR.puts e
+      end		
+    end
+		
 		def to_marc_export(out_file)
-		  writer = Writer.new(out_file ||= export_file)
-		  	writer.write(self)
-			writer.close
+		  begin
+				writer = MARC::Writer.new(out_file ||= export_file)
+				read.each do |rec|
+					writer.write(rec)
+				end
+				writer
+			rescue StandardError => e
+			  STDERR.puts e
+			ensure
+			  writer.close
+			end
 		end
 		
   end	 

@@ -1,28 +1,16 @@
 class ProxiedsController < ApplicationController
   include Ezproxy #api/ezproxy.rb
   include Ditare
-  
-  attr_accessor :client
-  
-  respond_to do |format|
-    format.html
-    format.json
-    format.jsonp
-    format.xml
-  end
-  
-  def initialize
-    @client = Ezproxy::Client.new
-  end
-  
+
   def index
+    @client = Ezproxy::Client.new
     @query = params[:q] || '.*'
     # Accept string or regexp. If string, convert to regexp.
     query = @query.class == Regexp ? @query : %r/^#{@query}/i
     #Returns links that have text_value matching the query, e.g. find("pubmed")
     #Array of Mechanize::Page::Links objects
     unless @proxieds
-			@proxieds = client.links_to_hash({:text => query})
+			@proxieds = @client.links_to_hash({:text => query}) || client.links_to_hash({:href => query})
     end
     @proxieds
   end
@@ -47,17 +35,17 @@ class ProxiedsController < ApplicationController
     unless @proxieds
       index
     end
-    oclc_records
-    enrichments_records
-    render :action => self.action_name
+    @oclc_records = oclc_records
+    @enrichments_records = enrichments_records
+    render :action => :index
   end
   
   def oclc
     unless @proxieds
       index
     end
-    oclc_records
-    render :action => self.action_name
+    @oclc_records = oclc_records
+    render :action => :index
   end
   
   def oclc_records
@@ -83,15 +71,15 @@ class ProxiedsController < ApplicationController
     unless @proxieds
       index
     end
-    enrichments_records
-    render :action => self.action_name  
+    @enrichments_records = enrichments_records
+    render :action => :index 
   end
   
   def enrichments_records
     @proxieds = @proxieds.map do |p|
       h = Hash.new
       h[:enrichments] = []
-      e = Ditare::EnrichmentSet.new({:field => 'database_name', :q => p[:text]})
+      e = Ditare::EnrichmentSet.new({:field => 'database_name', :q => %r/#{p[:text]}/i})
       e.recordset.each do |r|
         # Convert GData object to hash
         h[:enrichments] << Hash.try_convert(r)

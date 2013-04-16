@@ -3,11 +3,11 @@
 	<span class="data_element">Target Resource: <%= proxied[:target].host %></span>
 	<%- # Include related data %>
 	  <span class="related">
-	    <%- if proxied[:oclc_id] %>
-	      <%= render :partial => "oclc", :locals => {:oclcid => proxied[:oclc_id]} %>
+	    <%- if @oclc_records %>
+	      <%= render :partial => "shared/oclc", :locals => {:oclcid => proxied[:oclc_id]} %>
 	    <%- end %>
-	    <%- if proxied[:enrichments] %>
-	      <%= render :partial => "enrichments", :locals => {:enrichments => proxied[:enrichments]} %>
+	    <%- if @enrichments_records %>
+	      <%= render :partial => "shared/enrichments", :locals => {:enrichments => proxied[:enrichments]} %>
 	    <%- end %>	    
 	  </span>
 </li>

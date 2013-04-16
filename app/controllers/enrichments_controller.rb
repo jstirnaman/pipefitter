@@ -1,22 +1,16 @@
 class EnrichmentsController < ApplicationController
-  include Ditare
-
-  respond_to do |format|
-    format.html
-    format.json
-    format.jsonp
-    format.xml
-  end
-  
-  def initialize
-    
-  end
+  include Ditare 
 
   def index
 		@field = params[:field] || 'database_name'
 		@query = params[:q] || '.*'
-		@api_client = Ditare::EnrichmentSet.new({:field => @field, :q => @query})
-		@enrichments = @api_client.recordset
+		@enrichments = []
+		@es = Ditare::EnrichmentSet.new({:field => @field, :q => @query})
+		@es.recordset.each do |r|
+      # Convert GData object to hash
+      @enrichments << [Hash.try_convert(r)]
+    end
+    @enrichments
   end
  
 end

@@ -1,13 +1,7 @@
-<h1>Enrichments</h1>
-<h2>
-    <%= pluralize(@enrichments.size, 'match') %> for
-    <%= @field %> = <%= @query %>
-</h2>
+<h2>Enrichments</h2>
+<h3><%= @enrichments.size %> match <%= @query %></h3>
 <ol>
-<%- @enrichments.each do |e| %>
-    <li>
-    <%= e['database_name'] %> : <%= e['local_subjects'] %>
-    </li>
-    <span><!-- Show real-time screenshot or status using jquery --></span>
-<% end %>
+<%= render :partial => "shared/enrichments", :collection => @enrichments %>
+<h3>Debugging</h3>
+<%= debug @enrichments %>
 </ol>

@@ -1,6 +1,7 @@
-<h1>Proxied Resources</h1>
-<h2><%= @proxieds.size %> match <%= @query %></h2>
+<h2>Proxied Resources</h2>
+<h3><%= @proxieds.size %> match <%= @query %></h3>
 <ol>
+<%= render :partial => "shared/proxied", :collection => @proxieds, :as => :proxied %>
+<h3>Debugging</h3>
 <%= debug @proxieds %>
-<%= render :partial => "proxied", :collection => @proxieds, :as => :proxied %>
 </ol>

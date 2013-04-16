@@ -31,14 +31,30 @@ describe Ditare::MarcRecordset do
 		describe "#proxied" do
 		  it "returns a set of MARC records with new 856s" do
 		    @mr_obj.proxied.should be_kind_of Array
-		    @mr_obj.proxied.first.should be_kind_of MARC::Record
+		    @mr_obj.proxied.first.should be_kind_of String
 		  end
 		end
 		
 		describe "#tagged" do
 		  it "returns a set of MARC records with tags added" do
 		    @mr_obj.tagged.should be_kind_of Array
-		    @mr_obj.tagged.first.should be_kind_of MARC::Record
+		    @mr_obj.tagged.first.should be_kind_of String
+		  end
+		end
+		
+		describe "#enriched" do
+		  it "returns a new MarcRecordset object with all enrichments added to the recordset" do
+		    @mr_obj.enriched.should be_kind_of Ditare::MarcRecordset
+		    @mr_obj.enriched.recordset.should be_kind_of String
+		  end
+		end
+		
+		describe "#to_marc_export" do
+		  it "writes the records in recordset attribute to a MARC file" do
+		     fh = @mr_obj.export_file("testFile")
+		     writer = @mr_obj.to_marc_export(fh)
+		     writer.should be_kind_of MARC::Writer
+		     File.exists?(fh).should eq true
 		  end
 		end
   end
