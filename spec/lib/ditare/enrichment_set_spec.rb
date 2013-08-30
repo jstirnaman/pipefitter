@@ -28,5 +28,13 @@ describe Ditare::EnrichmentSet do
 		  end
 		end
 		
+		describe "#to_marcrecordset" do
+		  it "should return MarcRecordset containing MARC record for each EnrichmentSet entry" do
+		    @es_obj.to_marcrecordset.should be_a_kind_of Ditare::MarcRecordset
+		  end
+		  it "returns MarcRecordset.recordset with same number of items as self.recordset" do
+		  
+		  end
+		end
   end
 end

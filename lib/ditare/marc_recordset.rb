@@ -42,12 +42,33 @@ module Ditare
 			proxy_list = Ezproxy::Client.new
 			results = []
 			read.each do |record|
-				q = proxy_list.links({:text => %r/^#{record['245']['a'].strip}/i})
-				if q.empty?
-				  q = proxy_list.links({:href => %r/#{URI.parse(record['856']['u']).host}.*/i})
+			  # First, try to match on title.
+				@proxy_results = proxy_list.links({:text => %r/.*#{record['245']['a'].strip}.*/i})
+				if @proxy_results.empty? and record['856']
+				  # If title didn't match then collect all 
+				  # 856$u values for searching.
+				  begin
+            url_arr = []
+            # Return an array of URLs in current record			  
+				    record.each_by_tag('856'){|f| url_arr << f['u']}
+				    # Return a new array of the hostname from each parsed URL.
+				    url_arr.map! do |u|
+				        if URI.parse(u) then '.*' + URI.parse(u).host + '.*' end
+				    end
+				    url_str = url_arr.compact.join("|")
+				    @proxy_results = proxy_list.links({:href => %r/#{url_str}/i})
+				  rescue StandardError => e
+				    puts "Error for record " + record['001'].value.to_s + " " + 
+				          record['245'].to_s + " " + 
+				          record['856']['u'].to_s + " " + e.to_s
+				  end
 				end
-				unless q.empty?
-					results << [record.to_marc, q]
+				if @proxy_results.empty? and record['710']
+				  # No title or 856 match so try publisher.
+				  @proxy_results = proxy_list.links({:text => %r/.*#{record['710']['a'].strip}.*/i})
+				end
+				unless @proxy_results.empty?
+					results << [record.to_marc, @proxy_results]
 				end
 			end
 			results
@@ -55,7 +76,7 @@ module Ditare
 
 		def proxied
 			# Modified set of MARC-encoded records with proxied links in the 856.
-			marc = []
+			marc = ''
 			proxieds.each do |p|
 			  reader = MARC::Reader.new(StringIO.new(p[0]))
 			  reader.each do |r|
@@ -87,7 +108,7 @@ module Ditare
 	
 		def tagged
 			# Returns a new set of MARC-encoded records enriched with local subjects and other local info.
-			marc = []
+			marc = ''
 			tags.each do |t|
 			  reader = MARC::Reader.new(StringIO.new(t[0]))
 			  reader.each do |r|
@@ -99,6 +120,10 @@ module Ditare
 																					)
 											)
 							end
+							r.append(MARC::DataField.new( '590', ' ', ' ',
+							                            ['a', 'http://library.kumc.edu|Featured Database']
+							                            )
+							         )
 					marc << r.to_marc
 				end
       end
@@ -108,8 +133,9 @@ module Ditare
 		def enriched	
 		  # Returns a new object with all enrichments.	
 			mr = Ditare::MarcRecordset.new(:local, {})
-			mr.recordset = proxied.first
-      mr.recordset = mr.tagged.first
+			mr.recordset = proxied
+			mr = mr.delete_foreign_links # Has to come after .proxied since it tries to match on 856.
+      mr.recordset = mr.tagged
       mr
 		end
 		
@@ -118,7 +144,7 @@ module Ditare
       begin
         enriched.to_marc_export(export_file("enriched"))
       rescue StandardError => e
-        STDERR.puts e
+        STDERR.puts e.inspect
       end		
     end
 		
@@ -130,11 +156,31 @@ module Ditare
 				end
 				writer
 			rescue StandardError => e
-			  STDERR.puts e
+			  STDERR.puts e.inspect
 			ensure
 			  writer.close
 			end
 		end
-		
+	  
+	  def delete_foreign_links
+	  # Removes all 856s not containing our proxy base and returns a new object.
+	    mr = self
+	    recset = ''
+	    read.each do |rec|
+	      jrec = rec.to_hash
+        jrec["fields"].each do |f_hash|
+          f_hash.delete_if do |k,v| 
+              if k == "856" and !(v.to_s =~ %r/.*#{API_CONFIG['EZPROXY']['BASE_URL']}.*/i)
+                true
+              else
+                false
+              end
+          end
+        end
+        recset << MARC::Record.new_from_hash(jrec).to_marc
+      end
+      mr.recordset = recset
+      mr
+	  end
   end	 
 end

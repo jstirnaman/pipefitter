@@ -16,21 +16,23 @@ def dblinks
 end
 
 def to_csv
-  csv_string = CSV.generate do |csv|
+  csv_file = CSV.open("scraped_dblist.csv", "wb") do |csv|
   css('tr').each do |tr|
     row = []
     tr.css('td').each_with_index do |td, index|
       case index
       when 1 # Database name in second column
       row << td.css('a').text
-      when 2 # Database subject in third column
+      # Href value in third column
+      row << td.css('a').attribute('href')
+      when 2 # Database subject in fourth column
       row << td.text
       end
     end
     csv << row
   end
   end
-  csv_string
+  csv_file
 end
 
 

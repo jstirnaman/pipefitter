@@ -27,6 +27,9 @@ gem "httparty"
 # Google Drive - for easily reading/writing Google sheets.
 gem "google_drive"
 
+# JSON parsing
+gem "json"
+
 ### Layout Gems ###
 # Twitter Bootstrap
 gem 'bootstrap-sass'
