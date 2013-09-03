@@ -82,11 +82,19 @@ namespace :pipefitter do
   end
 
   desc 'Generates hits against EZProxy-configured resources.'
-  task :acts_on_ezproxy => :environment do
+  task :generate_proxy_traffic => :environment do
     ec = Ezproxy::Client.new
-    l = ec.links({})
-    l.each do |link|
-      HTTParty.get(link.uri.to_s)
+    a = ec.agent
+    al = Mechanize::AGENT_ALIASES.values
+    a.page.links.each do |link|
+      a.user_agent = al.shuffle.first
+      begin
+        a.transact do 
+          link.click
+        end
+      rescue StandardError => e
+        puts e.inspect + link.inspect
+      end
     end
   end
 end
