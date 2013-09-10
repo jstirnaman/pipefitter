@@ -5,26 +5,28 @@ namespace :pipefitter do
   task :report_eresource_holdings => :environment do
     puts "\n\n== Comparing title holdings in file with eresource holdings."
     begin
+      include DitareCsv
       unless ARGV[1].nil?
         path = ARGV[1]
         path = Rails.root.join(path)
-        table = CsvReporter::Import.new(Rails.root.join(path))
+        # Set encoding. ASCII-8BIT for Serials Solutions reports.
+        table = DitareCsv.import_csv(Rails.root.join(path), {:encoding => "ASCII-8BIT"})
         
-        p table.data.size.to_s + " rows " + " in " + path.to_s
-        p "with headers: " + table.data.headers.join(', ')
+        p table.size.to_s + " rows " + " in " + path.to_s
+        p "with headers: " + table.headers.join(', ')
 
         holdings = []
-        table.data.each do |row|
+        table.each do |row|
           q = {:issn => row[:issn]} unless row[:issn].nil?
           q ||= {:title => row[:title]}
-          e = EResourceHolding.new(q)
-          p q.to_s + "? " + e.kb_holdings.holdings?.to_s
-          holdings << e.kb_holdings.holdings?.to_s
+          e = SerialsSolutions::Openurl::Client.new(q)
+          p q.to_s + "? " + e.holdings?.to_s
+          holdings << e.holdings?.to_s
           sleep(0.3) # Throttle API requests; pause before processing next row.
         end
-        # Fill a new local_holdings column with holdings array and write the file.
-        table.data["local_holdings"]= holdings
-        CsvReporter::Export.new("eresource_holdings", table.data)
+        # Fill a new local_holdings column with holdings?.to_s and write the file.
+        table["local_holdings"]= holdings
+        DitareCsv.export_csv("eresource_holdings", table)
       else
       puts "### ERROR - No file supplied ###"
       end
@@ -32,7 +34,7 @@ namespace :pipefitter do
       puts "### ERROR - Comparing eresource holdings ###"
     end
   end
-  
+ 
   desc 'Fetches a MARC record for each resource in enrichments. 
         Enriches fetched MARC records with EZProxy link and enrichment data.
         Accepts 2 arguments:
@@ -82,19 +84,46 @@ namespace :pipefitter do
   end
 
   desc 'Generates hits against EZProxy-configured resources.'
-  task :generate_proxy_traffic => :environment do
+  task :generate_proxy_hits_from_menu => :environment do
     ec = Ezproxy::Client.new
     a = ec.agent
-    al = Mechanize::AGENT_ALIASES.values
-    a.page.links.each do |link|
-      a.user_agent = al.shuffle.first
-      begin
-        a.transact do 
-          link.click
-        end
-      rescue StandardError => e
-        puts e.inspect + link.inspect
-      end
+    click_links(a)
+  end
+
+  desc 'Scrapes database URLs from list in databases webpage.'
+  task :generate_proxy_hits_from_dblist => :environment do
+    include CasMechanizer
+    @agent = Mechanize.new
+    @store = cas_auth_store
+    @page = @agent.get("http://library.kumc.edu/database-list/")
+    EZPROXY_BASE_URL = API_CONFIG['EZPROXY']['BASE_URL']
+    new_links = @page.links_with(:href => /login\.proxy/).map do |link|
+        EZPROXY_BASE_URL + '/login' + link.uri.to_s[/(\?URL=.*)/, 0]
     end
+   unless new_links.empty?
+     al = Mechanize::AGENT_ALIASES.values
+     new_links.each do |link|
+       @agent.user_agent = al.shuffle.first
+       begin
+         mechanize_authentication(link)
+       rescue StandardError => e
+         puts e.inspect + link.inspect
+       end
+     end
+   end
+  end
+
+  def click_links(agent)
+     al = Mechanize::AGENT_ALIASES.values
+       agent.page.links.each do |link|
+         agent.user_agent = al.shuffle.first
+           begin
+             agent.transact do
+               link.click
+             end
+           rescue StandardError => e
+             puts e.inspect + link.inspect
+           end
+       end
   end
 end

@@ -1,5 +1,5 @@
 require 'csv'
-module Ditare
+module DitareCsv
   class << self
     attr_accessor :data, :file
     def initialize(options)
@@ -7,9 +7,9 @@ module Ditare
       @data = options[:data]
     end
     
-    def import_csv(file)
+    def import_csv(file, options)
       # Create a table from a CSV file with headers
-      @data = CSV.table(file)
+      @data = CSV.table(file, options)
     end
   
 		def export_csv(file, data)
@@ -23,10 +23,8 @@ module Ditare
 						end         
 					end
 				elsif data.class == CSV::Table
-					CSV.open(report_name, "wb") do |csv|
-						data.each do |w|
-							csv << w
-						end
+					File.open(report_name, "wb") do |f|
+            f << data.to_csv
 					end
 				end
     end 
