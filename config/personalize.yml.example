@@ -1,0 +1,15 @@
+# Institutional settings and secret credentials
+test:
+  CAS_LOGIN_FORM:
+  CAS_USER:
+  CAS_PASSWORD:
+
+development:
+  CAS_LOGIN_FORM:
+  CAS_USER:
+  CAS_PASSWORD:  
+
+production:
+  CAS_LOGIN_FORM:
+  CAS_USER:
+  CAS_PASSWORD:
